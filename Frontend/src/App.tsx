@@ -1,121 +1,137 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { type FormEvent, useState } from 'react'
+import Home from './Home'
+import Services from './Services'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [view, setView] = useState<'home' | 'login' | 'services'>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!email || !password) {
+      setError('Silakan isi email dan password terlebih dahulu.')
+      return
+    }
+    if (email === 'admin@hospital.com' && password === 'admin123') {
+      setError('')
+      setView('home')
+      return
+    }
+    setError('Kredensial tidak sesuai. Coba admin@hospital.com / admin123.')
+  }
+
+  const goToServices = () => {
+    setView('services')
+    // ensure top of services page
+    setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }) }, 80)
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div>
+      <header className={"site-header main"}>
+        {view === 'login' ? (
+          <>
+            <div className="brand" onClick={() => setView('login')} style={{ cursor: 'pointer' }}>
+              <div className="brand-logo">🏥</div>
+              <div className="brand-name">Anahita Hospital</div>
+            </div>
+            <div style={{ marginLeft: 'auto' }}>
+              <button className="help-btn" title="Bantuan">?</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="brand" onClick={() => setView('home')} style={{ cursor: 'pointer' }}>
+              <div className="brand-logo">🏥</div>
+              <div className="brand-name">Anahita Hospital</div>
+            </div>
+            <nav className="main-nav">
+              <a href="#" className={view === 'home' ? 'active' : ''} onClick={(e) => { e.preventDefault(); setView('home') }}>Home</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); goToServices() }}>Services</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setView('home') }}>Doctors</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setView('home') }}>Schedule</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setView('home') }}>Registration</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setView('home') }}>Contact</a>
+            </nav>
+            <div style={{ marginLeft: 'auto' }}>
+              <button className="queue-btn" onClick={() => setView('login')}>Check Queue</button>
+            </div>
+          </>
+        )}
+      </header>
 
-      <div className="ticks"></div>
+      {view === 'home' && <Home onLogin={() => setView('login')} />}
+      {view === 'services' && <Services />}
+      {view === 'login' && (
+        <main className="centered">
+          <div className="login-card-ref">
+            <div className="card-top">
+              <div className="avatar">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="8" r="3.2" stroke="#0f6b4b" strokeWidth="1.2" />
+                  <path d="M4 19c1.8-3.6 5.6-6 8-6s6.2 2.4 8 6" stroke="#0f6b4b" strokeWidth="1.2" strokeLinecap="round" />
+                </svg>
+              </div>
+              <h2>Masuk ke Akun Pasien</h2>
+              <p className="muted">Kelola pendaftaran, cek antrean, dan lihat riwayat kunjungan Anda.</p>
+            </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            <form className="form-ref" onSubmit={handleSubmit}>
+              <label className="field">
+                <span className="label-text">Email atau Nomor Telepon</span>
+                <div className="input-wrap">
+                  <span className="input-icon">@</span>
+                  <input
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="nama@email.com"
+                  />
+                </div>
+              </label>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+              <label className="field">
+                <div className="field-top">
+                  <span className="label-text">Kata Sandi</span>
+                  <a className="forgot" href="#">Lupa Password?</a>
+                </div>
+                <div className="input-wrap">
+                  <span className="input-icon">🔒</span>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </label>
+
+              {error ? <p className="error-text">{error}</p> : null}
+
+              <button className="btn-primary" type="submit">Masuk →</button>
+
+              <div className="divider">Atau masuk dengan</div>
+
+              <div className="socials">
+                <button type="button" className="social google">Google</button>
+                <button type="button" className="social card">Kartu Pasien</button>
+              </div>
+
+                <p className="register">Belum punya akun? <a href="#" onClick={(e) => { e.preventDefault(); /* registration removed */ }}>Daftar Akun Baru</a></p>
+            </form>
+
+            <div className="card-footer">
+              <small>Data Aman & Terenskripsi • Dukungan 24/7</small>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* Registration view removed */}
+    </div>
   )
 }
 
