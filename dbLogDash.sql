@@ -6,21 +6,21 @@ COLLATE utf8mb4_unicode_ci;
 
 USE anahita_hospital;
 
--- =====================================
+-- ======================
 -- ROLES
--- =====================================
+-- ======================
 
 CREATE TABLE roles (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
-    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
 );
 
--- =====================================
+-- ======================
 -- USERS
--- =====================================
+-- ======================
 
 CREATE TABLE users (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -29,84 +29,349 @@ CREATE TABLE users (
 
     name VARCHAR(100) NOT NULL,
 
-    email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) UNIQUE,
 
-    phone VARCHAR(20),
+    phone VARCHAR(20) UNIQUE,
 
     password VARCHAR(255) NOT NULL,
 
-    photo VARCHAR(255) DEFAULT NULL,
+    photo VARCHAR(255),
 
     is_active BOOLEAN DEFAULT TRUE,
 
-    last_login DATETIME DEFAULT NULL,
+    last_login TIMESTAMP NULL,
 
-    remember_token VARCHAR(100) DEFAULT NULL,
+    remember_token VARCHAR(100),
 
-    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NULL,
 
-    updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL,
 
-    CONSTRAINT fk_users_role
-        FOREIGN KEY(role_id)
+    FOREIGN KEY (role_id)
         REFERENCES roles(id)
+        ON DELETE RESTRICT
 );
 
--- =====================================
--- AUDIT LOG
--- =====================================
+-- ======================
+-- PATIENTS
+-- ======================
 
-CREATE TABLE audit_logs (
+CREATE TABLE patients (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     user_id BIGINT UNSIGNED NOT NULL,
 
-    activity VARCHAR(255),
+    medical_record_number VARCHAR(20) UNIQUE,
 
-    ip_address VARCHAR(45),
+    nik VARCHAR(16) UNIQUE,
 
-    user_agent TEXT,
+    birth_place VARCHAR(100),
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    birth_date DATE,
 
-    CONSTRAINT fk_audit_user
-        FOREIGN KEY(user_id)
+    gender ENUM('Male','Female'),
+
+    blood_type ENUM('A','B','AB','O'),
+
+    address TEXT,
+
+    emergency_contact VARCHAR(100),
+
+    emergency_phone VARCHAR(20),
+
+    allergies TEXT,
+
+    created_at TIMESTAMP NULL,
+
+    updated_at TIMESTAMP NULL,
+
+    FOREIGN KEY(user_id)
         REFERENCES users(id)
         ON DELETE CASCADE
 );
 
--- =====================================
--- DASHBOARD STATS
--- =====================================
+-- ======================
+-- Specialties
+-- ======================
 
-CREATE TABLE dashboard_stats (
+
+CREATE TABLE specialties (
+
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    total_patients INT DEFAULT 0,
+    name VARCHAR(100),
 
-    total_doctors INT DEFAULT 0,
-
-    total_nurses INT DEFAULT 0,
-
-    total_pharmacists INT DEFAULT 0,
-
-    total_cashiers INT DEFAULT 0,
-
-    total_appointments INT DEFAULT 0,
-
-    total_income DECIMAL(15,2) DEFAULT 0,
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
+    description TEXT
 );
 
--- =====================================
--- INSERT ROLES
--- =====================================
+-- ======================
+-- DOCTORS
+-- ======================
 
-INSERT INTO roles(name, description) VALUES
+CREATE TABLE doctors (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    user_id BIGINT UNSIGNED NOT NULL,
+
+    specialty_id BIGINT UNSIGNED,
+
+    license_number VARCHAR(50) UNIQUE,
+
+    experience_years INT,
+
+    created_at TIMESTAMP NULL,
+
+    updated_at TIMESTAMP NULL,
+
+    FOREIGN KEY(user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY(specialty_id)
+        REFERENCES specialties(id)
+        ON DELETE SET NULL
+);
+
+-- ======================
+-- doctor_schedules
+-- =====================
+
+CREATE TABLE doctor_schedules (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    doctor_id BIGINT UNSIGNED,
+
+    day ENUM(
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday'
+    ),
+
+    start_time TIME,
+
+    end_time TIME,
+
+    quota INT,
+
+    FOREIGN KEY(doctor_id)
+        REFERENCES doctors(id)
+);
+
+CREATE TABLE appointments (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    patient_id BIGINT UNSIGNED,
+
+    doctor_id BIGINT UNSIGNED,
+
+    schedule_id BIGINT UNSIGNED,
+
+    visit_date DATE,
+
+    queue_number INT,
+
+    complaint TEXT,
+
+    status ENUM(
+        'Waiting',
+        'Checked',
+        'Completed',
+        'Cancelled'
+    ),
+
+    created_at TIMESTAMP NULL,
+
+    updated_at TIMESTAMP NULL,
+
+    FOREIGN KEY(patient_id)
+        REFERENCES patients(id),
+
+    FOREIGN KEY(doctor_id)
+        REFERENCES doctors(id),
+
+    FOREIGN KEY(schedule_id)
+        REFERENCES doctor_schedules(id)
+);
+
+CREATE TABLE medical_records (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    appointment_id BIGINT UNSIGNED,
+
+    subjective TEXT,
+
+    objective TEXT,
+
+    assessment TEXT,
+
+    plan TEXT,
+
+    diagnosis TEXT,
+
+    treatment TEXT,
+
+    notes TEXT,
+
+    created_at TIMESTAMP NULL,
+
+    updated_at TIMESTAMP NULL,
+
+    FOREIGN KEY(appointment_id)
+        REFERENCES appointments(id)
+);
+
+CREATE TABLE medicines (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    name VARCHAR(100),
+
+    stock INT,
+
+    minimum_stock INT,
+
+    unit VARCHAR(20),
+
+    price DECIMAL(12,2),
+
+    created_at TIMESTAMP NULL,
+
+    updated_at TIMESTAMP NULL
+);
+
+CREATE TABLE medicines (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    name VARCHAR(100),
+
+    stock INT,
+
+    minimum_stock INT,
+
+    unit VARCHAR(20),
+
+    price DECIMAL(12,2),
+
+    created_at TIMESTAMP NULL,
+
+    updated_at TIMESTAMP NULL
+);
+
+CREATE TABLE prescriptions (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    medical_record_id BIGINT UNSIGNED,
+
+    notes TEXT,
+
+    created_at TIMESTAMP NULL,
+
+    updated_at TIMESTAMP NULL,
+
+    FOREIGN KEY(medical_record_id)
+        REFERENCES medical_records(id)
+);
+
+CREATE TABLE prescription_details (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    prescription_id BIGINT UNSIGNED,
+
+    medicine_id BIGINT UNSIGNED,
+
+    quantity INT,
+
+    dosage VARCHAR(100),
+
+    instruction TEXT,
+
+    FOREIGN KEY(prescription_id)
+        REFERENCES prescriptions(id),
+
+    FOREIGN KEY(medicine_id)
+        REFERENCES medicines(id)
+);
+
+CREATE TABLE invoices (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    appointment_id BIGINT UNSIGNED,
+
+    consultation_fee DECIMAL(12,2),
+
+    medicine_fee DECIMAL(12,2),
+
+    total DECIMAL(12,2),
+
+    status ENUM(
+        'Pending',
+        'Paid'
+    ),
+
+    created_at TIMESTAMP NULL,
+
+    updated_at TIMESTAMP NULL,
+
+    FOREIGN KEY(appointment_id)
+        REFERENCES appointments(id)
+);
+
+CREATE TABLE payments (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    invoice_id BIGINT UNSIGNED,
+
+    payment_method ENUM(
+        'Cash',
+        'Transfer',
+        'QRIS'
+    ),
+
+    amount DECIMAL(12,2),
+
+    paid_at DATETIME,
+
+    FOREIGN KEY(invoice_id)
+        REFERENCES invoices(id)
+);
+
+-- ======================
+-- AUDIT LOGS
+-- ======================
+
+CREATE TABLE audit_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    user_id BIGINT UNSIGNED,
+
+    activity TEXT,
+
+    ip_address VARCHAR(100),
+
+    created_at TIMESTAMP NULL,
+
+    FOREIGN KEY(user_id)
+        REFERENCES users(id)
+);
+
+-- ======================
+-- DEFAULT ROLES
+-- ======================
+
+INSERT INTO roles(name,description) VALUES
 ('Admin','Administrator'),
 ('Pasien','Patient'),
 ('Dokter','Doctor'),
@@ -115,51 +380,3 @@ INSERT INTO roles(name, description) VALUES
 ('Kasir','Cashier'),
 ('Pendaftaran','Registration Staff'),
 ('Manajemen','Management');
-
--- =====================================
--- DEFAULT ADMIN
--- password = password
--- hash bcrypt Laravel
--- =====================================
-
-INSERT INTO users
-(
-role_id,
-name,
-email,
-phone,
-password
-)
-VALUES
-(
-1,
-'Administrator',
-'admin@anahita.com',
-'081234567890',
-'$2y$12$KIXIDu7M4sN5lV6w6xG5F.v7S7Ff4qvP4dM5v6K1J7FQ2gk5GQYMe'
-);
-
--- =====================================
--- DEFAULT DASHBOARD
--- =====================================
-
-INSERT INTO dashboard_stats
-(
-total_patients,
-total_doctors,
-total_nurses,
-total_pharmacists,
-total_cashiers,
-total_appointments,
-total_income
-)
-VALUES
-(
-0,
-0,
-0,
-0,
-0,
-0,
-0
-);
