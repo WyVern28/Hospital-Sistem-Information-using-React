@@ -5,12 +5,21 @@ export default function Services() {
     <div className="services-page">
       <section className="services-hero">
         <div className="services-hero-inner">
+          <span className="hero-badge">Pelayanan Terintegrasi</span>
           <h1>Layanan Kesehatan</h1>
-          <p className="muted">Kami menghadirkan berbagai layanan medis unggulan dengan dukungan tenaga ahli profesional dan teknologi terkini untuk kesehatan Anda dan keluarga.</p>
+          <p className="services-lead">
+            Kami menghadirkan berbagai layanan medis unggulan dengan dukungan tenaga ahli profesional dan teknologi terkini untuk kesehatan Anda dan keluarga.
+          </p>
 
           <div className="search-box">
             <input placeholder="Cari layanan, poli, atau spesialis..." />
             <button className="btn-primary small">Cari</button>
+          </div>
+
+          <div className="hero-meta">
+            <span>24/7 IGD</span>
+            <span>Dokter Spesialis</span>
+            <span>Farmasi Online</span>
           </div>
         </div>
       </section>
@@ -49,7 +58,7 @@ export default function Services() {
           <div className="service-card">
             <div className="service-icon">🦷</div>
             <h4>Poli Gigi</h4>
-            <p>Perawatan gigi dan mulut: pembersihan rutin hingga tindakan bedah mulut dan estetika.</p>
+            <p>Perawatan gigi dan mulut mulai dari pembersihan rutin hingga tindakan estetika dan bedah.</p>
             <a className="detail-link">Lihat Detail →</a>
           </div>
 
@@ -86,7 +95,6 @@ export default function Services() {
           </div>
         </div>
       </main>
-
     </div>
   )
 }
