@@ -1,0 +1,8 @@
+# Ignore all PDF files
+*.pdf
+
+# Ignore README at project root
+/README.md
+
+# Ignore this SQL dump file
+/db_hospital.sql
