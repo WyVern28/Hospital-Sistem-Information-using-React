@@ -1,0 +1,11 @@
+export type Page =
+  | 'home'
+  | 'services'
+  | 'doctors'
+  | 'registration'
+  | 'edit'
+  | 'queue'
+  | 'history'
+  | 'contact'
+  | 'login'
+  | 'signup'
