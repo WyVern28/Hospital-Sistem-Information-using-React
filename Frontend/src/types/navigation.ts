@@ -3,7 +3,6 @@ export type Page =
   | 'services'
   | 'doctors'
   | 'registration'
-  | 'edit'
   | 'queue'
   | 'history'
   | 'contact'

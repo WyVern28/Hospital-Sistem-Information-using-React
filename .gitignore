@@ -1,8 +1,20 @@
-# Ignore all PDF files
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Tooling and operating-system files
+.DS_Store
+Thumbs.db
+*.log
+.vite/
+tmp/
+
+# Project documents kept outside normal source commits
 *.pdf
-
-# Ignore README at project root
-/README.md
-
-# Ignore this SQL dump file
-/db_hospital.sql

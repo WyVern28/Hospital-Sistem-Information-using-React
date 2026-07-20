@@ -1,5 +1,5 @@
-export type { Doctor } from './doctor'
-export type { AppointmentForm, AppointmentStatus } from './appointment'
+export type { Doctor, DoctorSchedule } from './doctor'
+export type { Appointment, AppointmentForm, AppointmentStatus, MedicalRecord } from './appointment'
 export type { Patient } from './patient'
-export type { LoginCredentials, SignupCredentials } from './auth'
+export type { AuthSession, LoginCredentials, LoginResponse, SignupCredentials, User, UserRole } from './auth'
 export type { Page } from './navigation'

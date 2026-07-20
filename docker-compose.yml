@@ -2,26 +2,41 @@ services:
   frontend:
     build: ./Frontend
     container_name: simrs-frontend
+    restart: unless-stopped
     ports:
       - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:5000
     # volumes:
     #   - ./Frontend:/app
     #   - /app/node_modules
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
   backend:
     build: ./backend
     container_name: simrs-backend
+    restart: unless-stopped
     ports:
       - "5000:5000"
     # volumes:
     #   - ./backend:/app
     #   - /app/node_modules
-    env_file:
-      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: mysql://simrs:simrs123@mysql:3306/simrs
+      JWT_SECRET: anahita-docker-development-secret-change-me
+      CORS_ORIGINS: http://localhost:5173
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5000/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+      start_period: 20s
 
   mysql:
     image: mysql:8.4
@@ -36,11 +51,16 @@ services:
       - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: simrs-phpmyadmin
-    restart: always
+    restart: unless-stopped
     ports:
       - "8080:80"
     environment:

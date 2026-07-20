@@ -4,11 +4,214 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum AppointmentStatus {
+  WAITING
+  IN_EXAMINATION
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String    @db.VarChar(100)
+  email        String    @unique @db.VarChar(191)
+  phone        String?   @unique @db.VarChar(20)
+  passwordHash String    @map("password") @db.VarChar(255)
+  role         UserRole
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLogin    DateTime? @map("last_login")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  patient      Patient?
+  doctor       Doctor?
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model AuditLog {
+  id          Int       @id @default(autoincrement())
+  userId      Int?      @map("user_id")
+  action      String    @db.VarChar(80)
+  entity      String    @db.VarChar(80)
+  entityId    String?   @map("entity_id") @db.VarChar(80)
+  description String    @db.VarChar(255)
+  metadata    Json?
+  ipAddress   String?   @map("ip_address") @db.VarChar(64)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique @db.VarChar(80)
+  label       String   @db.VarChar(120)
+  value       String   @db.Text
+  valueType   String   @default("TEXT") @map("value_type") @db.VarChar(20)
+  group       String   @default("GENERAL") @db.VarChar(40)
+  description String?  @db.VarChar(255)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([group])
+  @@map("system_settings")
+}
+
+model Patient {
+  id                  Int           @id @default(autoincrement())
+  userId              Int           @unique @map("user_id")
+  medicalRecordNumber String        @unique @map("medical_record_number") @db.VarChar(24)
+  nik                 String?       @unique @db.VarChar(16)
+  birthDate           DateTime?     @map("birth_date") @db.Date
+  gender              Gender?
+  address             String?       @db.Text
+  emergencyContact    String?       @map("emergency_contact") @db.VarChar(100)
+  emergencyPhone      String?       @map("emergency_phone") @db.VarChar(20)
+  allergies           String?       @db.Text
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments        Appointment[]
+
+  @@map("patients")
+}
+
+model Specialty {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  doctors     Doctor[]
+
+  @@map("specialties")
+}
+
+model Doctor {
+  id              Int              @id @default(autoincrement())
+  userId          Int              @unique @map("user_id")
+  specialtyId     Int              @map("specialty_id")
+  licenseNumber   String           @unique @map("license_number") @db.VarChar(50)
+  experienceYears Int              @default(0) @map("experience_years")
+  bio             String?          @db.Text
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty       Specialty        @relation(fields: [specialtyId], references: [id], onDelete: Restrict)
+  schedules       DoctorSchedule[]
+  appointments    Appointment[]
+
+  @@map("doctors")
+}
+
+model DoctorSchedule {
+  id           Int           @id @default(autoincrement())
+  doctorId     Int           @map("doctor_id")
+  code         String        @unique @db.VarChar(12)
+  day          DayOfWeek
+  startTime    DateTime      @map("start_time") @db.Time(0)
+  endTime      DateTime      @map("end_time") @db.Time(0)
+  quota        Int           @default(20)
+  isActive     Boolean       @default(true) @map("is_active")
+  doctor       Doctor        @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@unique([doctorId, day, startTime])
+  @@map("doctor_schedules")
+}
+
+model Appointment {
+  id            Int               @id @default(autoincrement())
+  patientId     Int               @map("patient_id")
+  doctorId      Int               @map("doctor_id")
+  scheduleId    Int               @map("schedule_id")
+  visitDate     DateTime          @map("visit_date") @db.Date
+  queueNumber   Int               @map("queue_number")
+  queueCode     String            @map("queue_code") @db.VarChar(24)
+  complaint     String            @db.Text
+  status        AppointmentStatus @default(WAITING)
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  patient       Patient           @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  doctor        Doctor            @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+  schedule      DoctorSchedule    @relation(fields: [scheduleId], references: [id], onDelete: Restrict)
+  medicalRecord MedicalRecord?
+
+  @@unique([patientId, scheduleId, visitDate])
+  @@unique([scheduleId, visitDate, queueNumber])
+  @@unique([visitDate, queueCode])
+  @@index([doctorId, visitDate, status])
+  @@map("appointments")
+}
+
+model MedicalRecord {
+  id            Int           @id @default(autoincrement())
+  appointmentId Int           @unique @map("appointment_id")
+  subjective    String        @db.Text
+  objective     String        @db.Text
+  assessment    String        @db.Text
+  plan          String        @db.Text
+  diagnosis     String        @db.Text
+  treatment     String?       @db.Text
+  notes         String?       @db.Text
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  prescription  Prescription?
+
+  @@map("medical_records")
+}
+
+model Prescription {
+  id              Int                  @id @default(autoincrement())
+  medicalRecordId Int                  @unique @map("medical_record_id")
+  notes           String?              @db.Text
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+  medicalRecord   MedicalRecord        @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  items           PrescriptionDetail[]
+
+  @@map("prescriptions")
+}
+
+model PrescriptionDetail {
+  id             Int          @id @default(autoincrement())
+  prescriptionId Int          @map("prescription_id")
+  medicineName   String       @map("medicine_name") @db.VarChar(120)
+  quantity       Int
+  dosage         String       @db.VarChar(100)
+  instruction    String?      @db.Text
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  @@map("prescription_details")
 }
