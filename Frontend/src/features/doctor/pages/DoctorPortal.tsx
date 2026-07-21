@@ -139,7 +139,7 @@ export default function DoctorPortal({ session, onLogout }: DoctorPortalProps) {
   const updateExam = (key: keyof typeof exam, value: string) => setExam(current => ({ ...current, [key]: value }))
 
   return <div className="doctor-portal">
-    <header className="doctor-header"><div className="brand"><span className="brand-mark">+</span><span className="brand-copy">Anahita Hospital<small>Portal Dokter</small></span></div><div><span>{session.user.name}</span><button className="text-button session-action" onClick={onLogout}><LogOut size={16} /> Keluar</button></div></header>
+    <header className="doctor-header"><div className="brand"><img className="brand-logo" src="/Group%201.png" alt="" /><span className="brand-copy">Anahita Hospital<small>Portal Dokter</small></span></div><div><span>{session.user.name}</span><button className="text-button session-action" onClick={onLogout}><LogOut size={16} /> Keluar</button></div></header>
     <main className="doctor-shell">
       <section className="doctor-welcome"><div><span className="section-kicker">PORTAL DOKTER</span><h1>Antrean & Pemeriksaan</h1><p>Kelola pasien hari ini dan simpan catatan klinis secara terstruktur.</p></div><button className="button secondary" onClick={() => { setLoading(true); setError(''); void loadAppointments() }} disabled={loading}><RefreshCw size={16} className={loading ? 'spin' : ''} /> Muat ulang</button></section>
       {notice && <div className="alert success-alert" role="status">{notice}</div>}

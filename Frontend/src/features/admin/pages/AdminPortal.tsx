@@ -275,7 +275,7 @@ export default function AdminPortal({ session, onLogout }: { session: AuthSessio
   return <div className="admin-portal">
     {menuOpen && <button className="admin-overlay" aria-label="Tutup menu" onClick={() => setMenuOpen(false)} />}
     <aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}>
-      <div className="admin-brand"><span className="admin-brand-mark">+</span><span>Anahita Hospital<small>Panel Administrasi</small></span></div>
+      <div className="admin-brand"><img className="admin-brand-logo" src="/Group%201.png" alt="" /><span>Anahita Hospital<small>Panel Administrasi</small></span></div>
       <button className="admin-close" aria-label="Tutup menu" onClick={() => setMenuOpen(false)}><X size={20} /></button>
       <nav aria-label="Menu admin">
         <span className="admin-nav-label">MENU UTAMA</span>
